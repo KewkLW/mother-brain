@@ -4,6 +4,14 @@ A persistent knowledge system for [Claude Code](https://claude.com/claude-code) 
 
 Claude Code's built-in memory is scoped per working directory, fragmented across projects, and invisible to your real notes. Mother Brain fixes that with four hooks and one skill that make Claude treat your vault as the single source of truth.
 
+## TL;DR
+
+Tell your agent:
+
+> Clone https://github.com/KewkLW/mother-brain and run `./install.sh`. Point it at my vault.
+
+That's it. The installer copies four hooks and one skill into your Claude Code config, asks for your vault path, and creates the folder structure if it doesn't exist. Next session, Claude saves to your vault instead of auto-memory. No MCP server, no daemon, no dependencies beyond bash, python3, and node.
+
 ## What it does
 
 **The problem:** Claude Code saves memories in per-directory sandboxes. If you work across multiple projects, your knowledge fragments. If you use Obsidian (or Logseq, Foam, plain markdown), Claude ignores it and writes `project_foo.md` files you'll never find again.
