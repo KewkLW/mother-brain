@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mother Brain"
+  short_description: "Persistent knowledge vault for AI coding agents."
+  default_prompt: "Use the vault skill to save this to the knowledge base."

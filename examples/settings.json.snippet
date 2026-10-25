@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/vault-check.sh\"",
+        "description": "Mother Brain: catches auto-memory writes that should go to the vault"
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/checkpoint.sh\"",
+        "description": "Mother Brain: periodic checkpoint, forces vault save every 15 messages"
+      },
+      {
+        "matcher": "",
+        "command": "VAULT_PATH='/path/to/your/vault' node \"$HOME/.claude/hooks/stop-reminder.js\"",
+        "description": "Mother Brain: end-of-session reminder if substantive work wasn't saved"
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/precompact.sh\"",
+        "description": "Mother Brain: save before context compression"
+      }
+    ]
+  }
+}
