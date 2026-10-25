@@ -29,6 +29,14 @@ We tried telling Claude "always save to the vault" in a feedback memory. It igno
 
 Hooks are enforced by the harness, not recalled by the model. They can't be forgotten.
 
+## The philosophy
+
+One skill file that teaches the model to use tools it already has, instead of wrapping those tools in an MCP layer.
+
+Claude Code can already read files, write files, run shell commands, and search your filesystem. It doesn't need a 25 MB server with 207 tool definitions to do those things through a proxy. It needs a short note that says "here's the workflow, here are the traps, here's the fastest command for each situation." Mother Brain is that note for knowledge management: no server, no daemon, no tool definitions. Just hooks that enforce the workflow and a skill that teaches it.
+
+This is the same pattern behind [leanrea](https://github.com/aicodeking/leanrea) (reverse engineering with plain CLI tools instead of an MCP server) and it works for the same reason: the model is already capable. The bottleneck is directing that capability, not adding more tools.
+
 ## Requirements
 
 - `bash`
