@@ -3,27 +3,43 @@
     "PreToolUse": [
       {
         "matcher": "Write",
-        "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/vault-check.sh\"",
-        "description": "Mother Brain: catches auto-memory writes that should go to the vault"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/vault-check.sh\""
+          }
+        ]
       }
     ],
     "Stop": [
       {
         "matcher": "",
-        "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/checkpoint.sh\"",
-        "description": "Mother Brain: periodic checkpoint, forces vault save every 15 messages"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/checkpoint.sh\""
+          }
+        ]
       },
       {
         "matcher": "",
-        "command": "VAULT_PATH='/path/to/your/vault' node \"$HOME/.claude/hooks/stop-reminder.js\"",
-        "description": "Mother Brain: end-of-session reminder if substantive work wasn't saved"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "VAULT_PATH='/path/to/your/vault' node \"$HOME/.claude/hooks/stop-reminder.js\""
+          }
+        ]
       }
     ],
     "PreCompact": [
       {
         "matcher": "",
-        "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/precompact.sh\"",
-        "description": "Mother Brain: save before context compression"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/precompact.sh\""
+          }
+        ]
       }
     ]
   }

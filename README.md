@@ -29,6 +29,14 @@ We tried telling Claude "always save to the vault" in a feedback memory. It igno
 
 Hooks are enforced by the harness, not recalled by the model. They can't be forgotten.
 
+## Requirements
+
+- `bash`
+- `python3`
+- `node` (v18+)
+- [Claude Code](https://claude.com/claude-code)
+- A markdown vault (Obsidian, Logseq, Foam, or a plain folder)
+
 ## Install
 
 ```bash
@@ -141,7 +149,7 @@ Yes. The installer creates a `_Registry.md` and `Sessions/` folder. Everything e
 Any folder of markdown files works. The hooks and skill only need a path to a directory. Obsidian, Logseq, Foam, VS Code with markdown preview, or a plain directory you `grep` through.
 
 **Does it work on Windows?**
-Yes. The hooks handle both path separators. Set `VAULT_PATH` with forward slashes or escaped backslashes.
+Yes, via WSL or Git Bash. The hooks handle both path separators. Set `VAULT_PATH` with forward slashes or escaped backslashes.
 
 ## License
 

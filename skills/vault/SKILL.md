@@ -15,30 +15,31 @@ The vault is your persistent knowledge base. **Information not in the vault is e
 | Belongs in auto-memory | Belongs in the vault |
 |---|---|
 | User prefs (`user_*.md`) | Project facts, current status, discoveries |
-| Feedback rules (`feedback_*.md`) | Recon findings, research notes |
+| Feedback rules (`feedback_*.md`) | Findings, research notes |
 | Open follow-ups index | Decisions and their reasoning |
 | One-line project pointers | Session logs |
+
+## Finding your vault
+
+The vault path is set via `VAULT_PATH` in the hook commands (see `examples/settings.json.snippet`). If you need it in this skill, read the `VAULT_PATH` from the hook config in `~/.claude/settings.json`, or check for the `_Registry.md` file to locate the vault root.
 
 ## Vault structure
 
 ```
-<VAULT_PATH>/
+your-vault/
 ├── _Registry.md          — canonical note names, CHECK THIS FIRST
-├── Bounties/             — engagements, targets, findings
-├── Projects/             — by domain (fitness, AI/ML, apps, etc.)
-├── Hardware/             — physical kit, devices
-├── Tools/                — tooling, MCP servers
-├── Infrastructure/       — servers, networking
+├── Projects/             — project notes, organized by domain
 ├── Research/             — ongoing research topics
+├── Tools/                — tooling and integrations
 ├── Sessions/             — date-stamped session logs
 ├── Templates/            — note templates
-└── Knowledge/            — reference material
+└── ...                   — add folders as needed for your domains
 ```
 
 ## Workflow (do every step)
 
 ### 1. Find the canonical note
-Read `<VAULT_PATH>/_Registry.md` first. Look for the existing entity under its section. Use the **exact** canonical name in `[[wikilinks]]`. Never invent a variant.
+Read the vault's `_Registry.md` first. Look for the existing entity under its section. Use the **exact** canonical name in `[[wikilinks]]`. Never invent a variant.
 
 If the entity is new: pick the right folder, create a new note, and append it to `_Registry.md` under the matching section.
 
@@ -51,7 +52,7 @@ Never blind-overwrite. Read the note, understand its current structure, and appe
 - Example: `- (2026-04-10) [[Auth Service]] token refresh rewrite: switched from opaque to JWT, fixes [[Mobile App]] login timeout`
 
 ### 4. Create a session log for long/complex sessions
-Path: `<VAULT_PATH>/Sessions/YYYY-MM-DD-topic.md`
+Path: `your-vault/Sessions/YYYY-MM-DD-topic.md`
 ```markdown
 ---
 wing: sessions
@@ -89,14 +90,14 @@ metadata:
   type: reference
 ---
 
-See `<VAULT_PATH>/<Folder>/<Entity>.md` — vault note is the source of truth.
+See `your-vault/<Folder>/<Entity>.md` — vault note is the source of truth.
 ```
 
 ## Note template (new vault note)
 
 ```markdown
 ---
-tags: [project|bounty|hardware|tool|research|infra]
+tags: [project|tool|research]
 status: active|paused|done
 created: YYYY-MM-DD
 updated: YYYY-MM-DD

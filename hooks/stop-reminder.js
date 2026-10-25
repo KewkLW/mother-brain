@@ -4,11 +4,10 @@
  *
  * Fires at most ONCE per session, and only when:
  *   - the session was substantive (>=1 file edit/write, or >=8 tool calls), AND
- *   - no vault write has happened this session yet.
+ *   - no vault file was actually written this session (checks for Write/Edit
+ *     tool calls targeting the vault path, not just mentions of the path).
  *
- * Reads the Stop-hook JSON on stdin: { stop_hook_active, transcript_path, session_id, ... }
- * On a nudge it returns {"decision":"block","reason":...} so the agent keeps
- * going and logs; the per-session sentinel + stop_hook_active guard prevent loops.
+ * Set VAULT_PATH in your hook command.
  */
 const fs = require('fs');
 const os = require('os');
@@ -27,7 +26,9 @@ function main() {
   if (input.stop_hook_active) return;
 
   const sessionId = String(input.session_id || 'nosession').replace(/[^a-zA-Z0-9_-]/g, '');
-  const sentinel = path.join(os.tmpdir(), `mother-brain-reminded-${sessionId}`);
+  const stateDir = path.join(process.env.XDG_STATE_HOME || path.join(os.homedir(), '.local', 'state'), 'mother-brain');
+  try { fs.mkdirSync(stateDir, { recursive: true }); } catch { /* ignore */ }
+  const sentinel = path.join(stateDir, `reminded-${sessionId}`);
   if (fs.existsSync(sentinel)) return;
 
   const tp = input.transcript_path;
@@ -36,10 +37,12 @@ function main() {
   let text = '';
   try { text = fs.readFileSync(tp, 'utf8'); } catch { return; }
 
-  // Already logged this session? Check for vault path writes or /vault skill invocation.
-  const vaultPattern = new RegExp(VAULT_PATH.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  // Check if a file was actually written TO the vault (not just the path mentioned in hook output).
+  // Look for Write/Edit tool calls where file_path contains the vault path.
+  const vaultEscaped = VAULT_PATH.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const writeToVault = new RegExp(`"file_path"\\s*:\\s*"[^"]*${vaultEscaped}`, 'i');
   const vaultSkill = /"skill"\s*:\s*"vault"/i;
-  if (vaultPattern.test(text) || vaultSkill.test(text)) return;
+  if (writeToVault.test(text) || vaultSkill.test(text)) return;
 
   // Substantive-work signals.
   const toolUses = (text.match(/"type"\s*:\s*"tool_use"/g) || []).length;
@@ -50,7 +53,7 @@ function main() {
   try { fs.writeFileSync(sentinel, String(Date.now())); } catch { /* best effort */ }
 
   const reason =
-    `Before ending: this session did substantive work but nothing has been logged to the vault yet ` +
+    `Before ending: this session did substantive work but nothing has been saved to the vault yet ` +
     `(${VAULT_PATH}). Persist it now via the /vault workflow: read _Registry.md for the canonical note name, ` +
     `append dated bullets with [[wikilinks]] to the relevant note(s), and add a Sessions/ log ` +
     `if the work was complex. Then collapse any auto-memory to a one-line pointer. ` +

@@ -13,11 +13,22 @@ echo "Mother Brain Installer"
 echo "======================"
 echo ""
 
+# Check dependencies
+MISSING=""
+command -v python3 >/dev/null 2>&1 || MISSING="python3 "
+command -v node >/dev/null 2>&1 || MISSING="${MISSING}node "
+command -v bash >/dev/null 2>&1 || MISSING="${MISSING}bash"
+if [ -n "$MISSING" ]; then
+    echo "Missing required dependencies: $MISSING"
+    echo "Install them and re-run."
+    exit 1
+fi
+
 # Ask for vault path
 if [ -n "${VAULT_PATH:-}" ]; then
     echo "Using VAULT_PATH from environment: $VAULT_PATH"
 else
-    read -rp "Where is your vault? (absolute path, e.g. /home/you/Obsidian/Vault): " VAULT_PATH
+    read -rp "Where is your vault? (absolute path, e.g. /home/you/vault): " VAULT_PATH
 fi
 
 # Validate vault path
@@ -64,30 +75,15 @@ mkdir -p "$SKILLS_DIR/vault"
 cp "$SCRIPT_DIR/skills/vault/SKILL.md" "$SKILLS_DIR/vault/"
 echo "  Copied vault skill to $SKILLS_DIR/vault/"
 
-# Escape the vault path for JSON
-ESCAPED_VAULT=$(printf '%s' "$VAULT_PATH" | sed -e "s|\\\\|\\\\\\\\|g" -e 's|"|\\"|g')
-
 echo ""
 echo "============================================================"
 echo "Almost done. Add these hooks to your Claude Code settings."
 echo ""
 echo "Open ~/.claude/settings.json (or settings.local.json) and"
-echo "merge the following into the \"hooks\" object:"
+echo "merge the hooks from examples/settings.json.snippet."
 echo ""
-echo "See examples/settings.json.snippet for the full block, or"
-echo "copy-paste the commands below, replacing the VAULT_PATH:"
-echo ""
-echo "  PreToolUse:"
-echo "    VAULT_PATH='${VAULT_PATH}' bash \"\$HOME/.claude/hooks/vault-check.sh\""
-echo ""
-echo "  Stop (checkpoint):"
-echo "    VAULT_PATH='${VAULT_PATH}' bash \"\$HOME/.claude/hooks/checkpoint.sh\""
-echo ""
-echo "  Stop (end-of-session reminder):"
-echo "    VAULT_PATH='${VAULT_PATH}' node \"\$HOME/.claude/hooks/stop-reminder.js\""
-echo ""
-echo "  PreCompact:"
-echo "    VAULT_PATH='${VAULT_PATH}' bash \"\$HOME/.claude/hooks/precompact.sh\""
+echo "Replace '/path/to/your/vault' with:"
+echo "  $VAULT_PATH"
 echo ""
 echo "Then start a new Claude Code session. Type /vault to test it."
 echo "============================================================"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Mother Brain — PreToolUse hook
 # Fires when Claude tries to Write a project_*.md into an auto-memory directory.
-# Injects a soft reminder to use the vault instead. Does NOT block the write.
+# Injects a soft reminder to use the vault instead. Does NOT approve or block.
 #
 # Set VAULT_PATH in your hook command (see install.sh).
 
@@ -15,7 +15,7 @@ try:
 except: print('')
 " 2>/dev/null)
 
-[ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "write" ] && exit 0
+[ "$TOOL_NAME" != "Write" ] && [ "$TOOL_NAME" != "write" ] && [ "$TOOL_NAME" != "Edit" ] && [ "$TOOL_NAME" != "edit" ] && exit 0
 
 FILE_PATH=$(printf '%s' "$INPUT" | python3 -c "
 import sys, json
@@ -29,8 +29,7 @@ except: print('')
 case "$FILE_PATH" in
   *[/\\]memory[/\\]project_*.md)
     VAULT="${VAULT_PATH:-your vault}"
-    ESCAPED_VAULT=$(printf '%s' "$VAULT" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')
-    printf '{"decision":"approve","hookSpecificOutput":{"additionalContext":"Mother Brain: you are writing a project_*.md file into auto-memory. Project knowledge belongs in the vault at %s. Use the /vault skill or write directly to the vault instead. Auto-memory should contain at most a one-line pointer back to the vault note."}}' "$ESCAPED_VAULT"
+    printf '{"hookSpecificOutput":{"additionalContext":"Mother Brain: you are writing a project_*.md file into auto-memory. Project knowledge belongs in the vault at %s. Use the /vault skill or write directly to the vault instead. Auto-memory should contain at most a one-line pointer back to the vault note."}}' "$VAULT"
     ;;
   *)
     exit 0
