@@ -53,8 +53,9 @@ if [ ! -f "$VAULT_PATH/_Registry.md" ]; then
     mkdir -p "$VAULT_PATH/Research"
     mkdir -p "$VAULT_PATH/Tools"
     mkdir -p "$VAULT_PATH/Templates"
+    mkdir -p "$VAULT_PATH/.brain"
     cp "$SCRIPT_DIR/examples/_Registry.md" "$VAULT_PATH/_Registry.md"
-    echo "  Created _Registry.md and folders"
+    echo "  Created _Registry.md, .brain/, and folders"
 fi
 
 # Install hooks
@@ -65,8 +66,15 @@ cp "$SCRIPT_DIR/hooks/vault-check.sh" "$HOOKS_DIR/"
 cp "$SCRIPT_DIR/hooks/checkpoint.sh" "$HOOKS_DIR/"
 cp "$SCRIPT_DIR/hooks/stop-reminder.js" "$HOOKS_DIR/"
 cp "$SCRIPT_DIR/hooks/precompact.sh" "$HOOKS_DIR/"
-chmod +x "$HOOKS_DIR/vault-check.sh" "$HOOKS_DIR/checkpoint.sh" "$HOOKS_DIR/precompact.sh"
-echo "  Copied 4 hooks to $HOOKS_DIR"
+cp "$SCRIPT_DIR/hooks/post-vault-lint.sh" "$HOOKS_DIR/"
+chmod +x "$HOOKS_DIR/vault-check.sh" "$HOOKS_DIR/checkpoint.sh" "$HOOKS_DIR/precompact.sh" "$HOOKS_DIR/post-vault-lint.sh"
+echo "  Copied 5 hooks to $HOOKS_DIR"
+
+# Install linter
+echo ""
+echo "Installing linter..."
+cp "$SCRIPT_DIR/brain.py" "$HOOKS_DIR/brain.py"
+echo "  Copied brain.py to $HOOKS_DIR"
 
 # Install skill
 echo ""

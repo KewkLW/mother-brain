@@ -125,6 +125,41 @@ One paragraph: what it is and why it exists.
 - [[YYYY-MM-DD-topic]]
 ```
 
+## Linter (brain.py)
+
+Mother Brain includes a deterministic linter that checks vault health without using any LLM. Zero tokens, milliseconds. It runs automatically after every vault write via the `post-vault-lint.sh` hook.
+
+### What it checks
+- Every note has frontmatter with `tags` and `created`
+- Every `[[wikilink]]` resolves to an existing note
+- Every quoted claim (blockquote with `— source` attribution) exists verbatim in the cited file
+- No orphan notes (notes with zero inbound links, excluding Sessions/)
+- No bare `TODO` outside checkboxes
+- Source files changed after ingest are flagged with their stale pages
+
+### Manual commands
+Run from the vault root with `VAULT_PATH` set:
+
+```bash
+VAULT_PATH=/path/to/vault python3 brain.py lint          # full vault check
+VAULT_PATH=/path/to/vault python3 brain.py lint file.md   # single file
+VAULT_PATH=/path/to/vault python3 brain.py status         # show pending ingests
+VAULT_PATH=/path/to/vault python3 brain.py done raw/source.md wiki/page1.md wiki/page2.md
+VAULT_PATH=/path/to/vault python3 brain.py index          # rebuild auto-index
+```
+
+### Quote attribution format
+When citing a source verbatim, use this format so the linter can verify the quote exists:
+
+```markdown
+> "The exact words from the source" — path/to/source.md
+```
+
+The linter normalizes whitespace and checks that the quoted text appears in the source file. If the source changes, the linter flags the quoting pages as stale.
+
+### Source provenance (optional)
+If your vault has a `raw/` directory for source documents, `brain.py status` tracks which sources are NEW, CHANGED, or DELETED since they were last ingested. After Claude ingests a source into wiki pages, record it with `brain.py done <raw-file> <page...>`, which stores a SHA hash. When the source changes later, the linter flags the derived pages as stale.
+
 ## Common pitfalls
 
 1. **Bare-referencing entities** (writing `Beatport` instead of `[[Beatport]]`). Breaks cross-linking and graph navigation.
@@ -132,9 +167,11 @@ One paragraph: what it is and why it exists.
 3. **Overwriting notes wholesale.** Append, don't replace.
 4. **Saving relative dates** ("yesterday", "last week"). Always resolve to `YYYY-MM-DD`.
 5. **Writing `project_*.md` in auto-memory.** If you catch yourself doing this, stop. Use this workflow instead.
+6. **Unattributed quotes.** If you cite a source, use the blockquote attribution format so the linter can verify it.
 
 ## Invocation
 
 - **Manually:** `/vault [entity]` — run through the workflow for the named entity
 - **Auto-triggered:** when the user says "save this", "remember this about X", "note that", or when you're about to persist anything non-ephemeral about a project
 - **Forced:** the `vault-check.sh` hook injects a reminder on any `project_*.md` auto-memory write
+- **Lint:** runs automatically after every vault write via `post-vault-lint.sh`. Fix any issues it reports before moving on.

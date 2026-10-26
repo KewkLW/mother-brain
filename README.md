@@ -2,7 +2,7 @@
 
 A persistent knowledge system for [Claude Code](https://claude.com/claude-code) that keeps your project knowledge in an Obsidian vault (or any markdown-based PKM) instead of letting it scatter into auto-memory.
 
-Claude Code's built-in memory is scoped per working directory, fragmented across projects, and invisible to your real notes. Mother Brain fixes that with four hooks and one skill that make Claude treat your vault as the single source of truth.
+Claude Code's built-in memory is scoped per working directory, fragmented across projects, and invisible to your real notes. Mother Brain fixes that with five hooks, one skill, and a deterministic linter that make Claude treat your vault as the single source of truth.
 
 ## TL;DR
 
@@ -10,13 +10,13 @@ Tell your agent:
 
 > Clone https://github.com/KewkLW/mother-brain and run `./install.sh`. Point it at my vault.
 
-That's it. The installer copies four hooks and one skill into your Claude Code config, asks for your vault path, and creates the folder structure if it doesn't exist. Next session, Claude saves to your vault instead of auto-memory. No MCP server, no daemon, no dependencies beyond bash, python3, and node.
+That's it. The installer copies five hooks, one skill, and a linter into your Claude Code config, asks for your vault path, and creates the folder structure if it doesn't exist. Next session, Claude saves to your vault instead of auto-memory. No MCP server, no daemon, no dependencies beyond bash, python3, and node.
 
 ## What it does
 
 **The problem:** Claude Code saves memories in per-directory sandboxes. If you work across multiple projects, your knowledge fragments. If you use Obsidian (or Logseq, Foam, plain markdown), Claude ignores it and writes `project_foo.md` files you'll never find again.
 
-**The fix:** Four hooks that form a behavioral forcing function, plus a skill that teaches Claude the vault workflow.
+**The fix:** Five hooks that form a behavioral forcing function, a deterministic linter that catches structural errors without burning tokens, and a skill that teaches Claude the vault workflow.
 
 | Hook | Event | What it does |
 |------|-------|-------------|
@@ -24,8 +24,11 @@ That's it. The installer copies four hooks and one skill into your Claude Code c
 | `checkpoint.sh` | Stop | Every 15 messages, blocks Claude and forces a vault save with session notes, wikilinks, and entity registry updates |
 | `stop-reminder.js` | Stop | At end of session, checks if substantive work happened without a vault save. Blocks once to prompt logging |
 | `precompact.sh` | PreCompact | Before context compression, blocks once to save anything that would be lost |
+| `post-vault-lint.sh` | PostToolUse | After any Edit/Write to the vault, runs `brain.py lint` on the changed file. Broken links, missing frontmatter, and unverified quotes surface immediately |
 
 The `/vault` skill auto-triggers when Claude is about to persist project knowledge, walking it through: check the entity registry, read the existing note, append with dated bullets and `[[wikilinks]]`, create a session log if the work was complex.
+
+A deterministic linter (`brain.py`) verifies every vault write: frontmatter, wikilinks, quote attribution, orphans, and stale sources. It runs after every edit via the `post-vault-lint.sh` hook. Zero tokens, milliseconds.
 
 ## Why hooks instead of a prompt rule
 
@@ -131,9 +134,46 @@ Each project, tool, or concept gets one note. Append-only with dated bullets. Se
 3. If you try to stop without saving, `stop-reminder.js` catches it
 4. If context is about to compress, `precompact.sh` saves first
 5. If Claude reaches for auto-memory, `vault-check.sh` redirects it
-6. `/vault` gives Claude the full workflow: registry, wikilinks, templates
+6. After every vault write, `post-vault-lint.sh` runs `brain.py` on the changed file
+7. `/vault` gives Claude the full workflow: registry, wikilinks, templates
 
 The result: your Obsidian vault becomes a living knowledge base that grows with every Claude session. Cross-linked, searchable, with a full timeline of what happened and why.
+
+## The linter (brain.py)
+
+A 95-line Python script (standard library only, no AI) that checks vault health deterministically. Runs automatically after every vault write via the PostToolUse hook.
+
+What it catches:
+- Missing or incomplete frontmatter (`tags`, `created`)
+- Broken `[[wikilinks]]` that don't resolve to any note
+- Quoted claims that don't exist verbatim in the cited source file
+- Orphan notes with zero inbound links
+- Bare `TODO` markers outside checkboxes
+- Source files that changed after their last ingest (stale derived pages)
+
+### Manual usage
+
+```bash
+VAULT_PATH=/path/to/vault python3 brain.py lint          # full vault check
+VAULT_PATH=/path/to/vault python3 brain.py lint note.md   # single file
+VAULT_PATH=/path/to/vault python3 brain.py status         # pending ingests
+VAULT_PATH=/path/to/vault python3 brain.py done raw/src.md Projects/App.md  # record ingest
+VAULT_PATH=/path/to/vault python3 brain.py index          # rebuild auto-index
+```
+
+### Quote verification
+
+When a note quotes a source, use this format:
+
+```markdown
+> "The exact words from the source" — path/to/source.md
+```
+
+The linter normalizes whitespace and checks that the quoted text appears in the cited file. If the source changes after ingest, the linter flags the derived pages as stale. This is the single most valuable check: it catches hallucinated citations that a model would never catch on its own.
+
+### Source provenance (optional)
+
+If your vault has a `raw/` directory for source documents, `brain.py status` tracks which sources are NEW, CHANGED, or DELETED since last ingest. After ingestion, `brain.py done <raw> <pages...>` records the source hash and its derived pages. When the source changes, the linter flags the pages for re-ingestion.
 
 ## Configuration
 

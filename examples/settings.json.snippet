@@ -31,6 +31,18 @@
         ]
       }
     ],
+
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "VAULT_PATH='/path/to/your/vault' bash \"$HOME/.claude/hooks/post-vault-lint.sh\""
+          }
+        ]
+      }
+    ],
     "PreCompact": [
       {
         "matcher": "",
